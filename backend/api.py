@@ -5,42 +5,64 @@ import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
 
 class Item(BaseModel):
-    id:int
+    type: str
+    value: str
 
 app = FastAPI()
 
-app.add_middleware( #CORSの設定(異なるオリジン(場所)からのアクセスを許可)これがないとセキュリティが危ないし、検索できない
+app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ #許可するオリジン(Reactの開発環境など)
+    allow_origins=[
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
     ],
-    allow_credentials=False, #認識情報を含めるかどうか(今回は含めない)
-    allow_methods=["*"], #全てのHTTPメソッドの許可　*だと全部許可できるから開発がスムーズにできる
-    allow_headers=["*"], #全てのHTTPヘッダーの許可
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.post("/search")
-def select(item:Item):
-    print("ID:",item.id)
+def select(item: Item):
+
     with sqlite3.connect("seiseki.db") as conn:
-        sql="SELECT id, name,math,japanese,science,social_study,english FROM seiseki_statement WHERE id=?"
-        data=(item.id,)
-        row=conn.execute(sql,data).fetchone()
-        
+
+        # ID検索
+        if item.type == "id":
+            sql = """
+            SELECT id, name, math, japanese, science, social_study, english
+            FROM seiseki_statement
+            WHERE id = ?
+            """
+            row = conn.execute(sql, (int(item.value),)).fetchone()
+
+        # 名前検索
+        elif item.type == "name":
+            sql = """
+            SELECT id, name, math, japanese, science, social_study, english
+            FROM seiseki_statement
+            WHERE name = ?
+            """
+            row = conn.execute(sql, (item.value,)).fetchone()
+
+        else:
+            return JSONResponse(
+                status_code=400,
+                content={"message": "検索方法が不正です"}
+            )
+
         if row is None:
             return JSONResponse(
                 content={"message": "not found"}
             )
 
-        dic={
-                "id":row[0],
-                "name":row[1],
-                "math":row[2],
-                "japanese":row[3],
-                "science":row[4],
-                "social_study":row[5],
-                "english":row[6]
-            }
+        student = {
+            "id": row[0],
+            "name": row[1],
+            "math": row[2],
+            "japanese": row[3],
+            "science": row[4],
+            "social_study": row[5],
+            "english": row[6]
+        }
 
-    return JSONResponse(content=dic)
+    return JSONResponse(content=student)
