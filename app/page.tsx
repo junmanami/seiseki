@@ -1,7 +1,8 @@
 "use client";
-import React, { FormEvent, KeyboardEvent, useId, useState } from "react";
+import React, { useId, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import SearchForm from "./components/SearchForm";
 
 export const MacbookPro = (): React.ReactElement => {
   const [name, setName] = useState("");
@@ -21,20 +22,6 @@ export const MacbookPro = (): React.ReactElement => {
       `/result?type=${type}&value=${encodeURIComponent(trimmedValue)}`
     );
   };
-
-  const handleSubmit =
-    (type: "name" | "id") => (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      handleSearch(type);
-    };
-
-  const handleKeyDown =
-    (type: "name" | "id") => (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        handleSearch(type);
-      }
-    };
 
   const searchFields = [
     {
@@ -85,35 +72,29 @@ export const MacbookPro = (): React.ReactElement => {
         >
 成績参照
         </h1>
-{searchFields.map((field) => (
-          <form
-            key={field.key}
-            onSubmit={handleSubmit(field.key)}
-            className={`absolute left-[86px] ${field.top} h-[83px] w-[802px]`}
-          >
-<label htmlFor={field.inputId} className="sr-only">
-{field.inputAriaLabel}
-            </label>
-<div className="absolute top-0 left-0 w-[618px] h-[78px] rounded-[10px] border-[4px] border-solid border-[#8d8d8d] bg-transparent" />
-<input
-              id={field.inputId}
-              type="text"
-              value={field.value}
-              onChange={(event) => field.onChange(event.target.value)}
-              onKeyDown={handleKeyDown(field.key)}
-              placeholder={field.placeholder}
-              aria-label={field.inputAriaLabel}
-              className="absolute top-0 left-0 w-[618px] h-[78px] px-[22px] text-[#000000] placeholder:text-[#d5d5d5] text-4xl [font-family:'Inter-Regular',Helvetica] font-normal tracking-[0] leading-[normal]"
-            />
-<button
-              type="submit"
-              aria-label={field.buttonAriaLabel}
-              className="absolute top-0 left-[652px] w-[150px] h-[83px] bg-[#7f7f7f] rounded-[10px] border-[5px] border-solid border-transparent text-white text-4xl text-center whitespace-nowrap [font-family:'Inter-Regular',Helvetica] font-normal tracking-[0] leading-[normal] flex items-center justify-center cursor-pointer"
-            >
-{field.buttonLabel}
-            </button>
-</form>
-))}
+<SearchForm
+  inputId={nameInputId}
+  value={name}
+  onChange={setName}
+  placeholder="名前を入力"
+  buttonLabel="検索"
+  inputAriaLabel="名前を入力して検索"
+  buttonAriaLabel="名前で検索"
+  top="top-[260px]"
+  onSearch={() => handleSearch("name")}
+/>
+
+<SearchForm
+  inputId={idInputId}
+  value={studentId}
+  onChange={setStudentId}
+  placeholder="IDを入力"
+  buttonLabel="検索"
+  inputAriaLabel="IDを入力して検索"
+  buttonAriaLabel="IDで検索"
+  top="top-[388px]"
+  onSearch={() => handleSearch("id")}
+/>
       </section>
 </main>
 );
